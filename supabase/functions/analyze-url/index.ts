@@ -79,7 +79,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are an expert SEO and content readability auditor. Analyze the provided webpage content and return a structured audit. Be specific and actionable in your findings. Score readability and SEO from 0-100. The overall score should be a weighted average (40% readability, 60% SEO). Determine a reading level like "Grade 8 — Good" or "Grade 12 — Difficult". Extract the top keywords with their approximate density. List specific, actionable findings with priorities.`,
+            content: `You are an expert SEO and content readability auditor. Analyze the provided webpage content and return a structured audit. Be specific and actionable in your findings. Score readability and SEO from 0-100. The overall score should be a weighted average (40% readability, 60% SEO). Determine a reading level like "Grade 8 — Good" or "Grade 12 — Difficult". Extract at least 10-15 of the top keywords and key phrases (both single words and multi-word phrases) with their approximate density percentage. Include long-tail keywords and semantic variations. List specific, actionable findings with priorities.`,
           },
           {
             role: "user",
