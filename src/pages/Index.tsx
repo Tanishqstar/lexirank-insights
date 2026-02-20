@@ -7,33 +7,21 @@ import DashboardBento from "@/components/DashboardBento";
 import EmptyState from "@/components/EmptyState";
 import type { Finding } from "@/components/FindingsList";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-// Demo data for first version (will be replaced by real AI analysis)
-const demoAudit = {
-  url: "https://example.com",
-  overall_score: 72,
-  readability_score: 78,
-  seo_score: 65,
-  readability_level: "Grade 8 — Good",
-  keywords: [
-    { term: "content marketing", density: "2.4%" },
-    { term: "SEO optimization", density: "1.8%" },
-    { term: "digital strategy", density: "1.2%" },
-    { term: "user experience", density: "0.9%" },
-    { term: "conversion rate", density: "0.7%" },
-  ],
-  findings: [
-    { id: "1", type: "SEO" as const, issue_description: "Missing meta description — add a compelling 155-character summary", priority: "High" as const },
-    { id: "2", type: "SEO" as const, issue_description: "No H1 tag found on the page — add a primary heading", priority: "High" as const },
-    { id: "3", type: "Readability" as const, issue_description: "Average sentence length is 28 words — aim for under 20", priority: "Medium" as const },
-    { id: "4", type: "SEO" as const, issue_description: "Images missing alt attributes (3 of 7)", priority: "Medium" as const },
-    { id: "5", type: "Readability" as const, issue_description: "Passive voice used in 18% of sentences — reduce to under 10%", priority: "Low" as const },
-    { id: "6", type: "SEO" as const, issue_description: "No canonical tag specified", priority: "Low" as const },
-  ] as Finding[],
-};
+interface AuditResult {
+  url: string;
+  overall_score: number;
+  readability_score: number;
+  seo_score: number;
+  readability_level: string;
+  keywords: { term: string; density: string }[];
+  findings: Finding[];
+}
 
 const Index = () => {
-  const [audit, setAudit] = useState<typeof demoAudit | null>(null);
+  const [audit, setAudit] = useState<AuditResult | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanStep, setScanStep] = useState(0);
   const formRef = useRef<HTMLDivElement>(null);
@@ -43,16 +31,30 @@ const Index = () => {
     setAudit(null);
     setScanStep(1);
 
-    // Simulate multi-step scan
-    await new Promise((r) => setTimeout(r, 1500));
-    setScanStep(2);
-    await new Promise((r) => setTimeout(r, 2000));
-    setScanStep(3);
-    await new Promise((r) => setTimeout(r, 1000));
+    try {
+      // Step 1: Fetching page
+      await new Promise((r) => setTimeout(r, 800));
+      setScanStep(2);
 
-    setAudit({ ...demoAudit, url });
-    setIsScanning(false);
-    setScanStep(0);
+      // Step 2: AI Analysis (actual call)
+      const { data, error } = await supabase.functions.invoke("analyze-url", {
+        body: { url },
+      });
+
+      if (error) throw new Error(error.message);
+      if (!data?.success) throw new Error(data?.error || "Analysis failed");
+
+      setScanStep(3);
+      await new Promise((r) => setTimeout(r, 600));
+
+      setAudit(data.data);
+    } catch (err: any) {
+      console.error("Audit failed:", err);
+      toast.error(err.message || "Failed to analyze URL. Please try again.");
+    } finally {
+      setIsScanning(false);
+      setScanStep(0);
+    }
   };
 
   const scrollToForm = () => {

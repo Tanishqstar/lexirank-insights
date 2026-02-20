@@ -1,1 +1,4 @@
 project_id = "soscohnikekljirhqcxu"
+
+[functions.analyze-url]
+verify_jwt = false
